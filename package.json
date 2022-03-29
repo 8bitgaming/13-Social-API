@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "express": "^4.17.3",
+    "mongoose": "^6.2.9"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "name": "13-social-api",
+  "version": "1.0.0",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8bitgaming/13-Social-API.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/8bitgaming/13-Social-API/issues"
+  },
+  "homepage": "https://github.com/8bitgaming/13-Social-API#readme",
+  "description": ""
+}
