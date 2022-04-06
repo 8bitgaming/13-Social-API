@@ -1,4 +1,5 @@
 const { User, Thought } = require('../models');
+const { create } = require('../models/User');
 
 const thoughtController = {
 
@@ -12,8 +13,8 @@ const thoughtController = {
         });
     },
     // get thought by ID
-    getThoughtById({ params }, res) {
-        Thought.findOne({ _id: params.id })
+    getThoughtById({ body }, res) {
+        Thought.findOne({ _id: body._id })
           .then(dbThoughtData => res.json(dbThoughtData))
           .catch(err => {
             console.log(err);
@@ -21,9 +22,9 @@ const thoughtController = {
           });
       },
 
-    // update thought by id -- not working
-    updateThought({ params, body }, res) {
-        Thought.findOneAndUpdate({ _id: params.id }, body, { new: true, runValidators: true })
+    // update thought by id
+    updateThought({ body }, res) {
+        Thought.findOneAndUpdate({ _id: body._id }, body, { new: true, runValidators: true })
           .then(dbThoughtData => {
             if (!dbThoughtData) {
               res.status(404).json({ message: 'No thought found with this id!' });
@@ -34,33 +35,34 @@ const thoughtController = {
           .catch(err => res.status(400).json(err));
       },
 
-    //   add thought - works but need to fix associating with user and fix validation message
+    //   add thought - works but user validation doesn't work properly
       createThought({ body }, res) {
-        Thought.create(body, { new: true} )
-          .then(createdThought => {
-            if (!createdThought) {
-              return res.status(404).json({ message: 'No User with this id!' });
-            }
+        Thought.create(body)
+          .then(({ _id }) => {
             return User.findOneAndUpdate(
               { _id: body.userId },
               { $push: { thoughts: _id } },
               { new: true }
             );
           })
-          .then(createdThought => {
-            res.json(createdThought);
+          .then(dbUserData => {
+            if (!dbUserData) {
+              res.status(404).json({ message: 'No user found with this id!' });
+              return;
+            }
+            res.json(dbUserData);
           })
           .catch(err => res.json(err));
       },
 
-    // delete thought
-    deleteThought({ params }, res) {
-    Thought.findOneAndDelete({ _id: params.id })
+    // delete thought - need to update to remove from user
+    deleteThought({ body }, res) {
+    Thought.findOneAndDelete({ _id: body._id })
         .then(dbThoughtData => res.json(dbThoughtData))
         .catch(err => res.json(err));
     },
 
-    // add reaction - need to fix no thought found
+    // add reaction - improve no thought found
     addReaction({ params, body }, res) {
     Thought.findOneAndUpdate({ _id: params.thoughtId }, { $push: { reactions: body } }, { new: true })
         .select('-__v')
@@ -69,23 +71,23 @@ const thoughtController = {
             res.status(404).json({ message: 'No thought found with this id!' });
             return;
         }
-        res.json({message: 'Thought has been added'});
+        res.json({message: 'Reaction has been added'});
         })
         .catch(err => res.json(err));
     },
 
     // remove reaction - not working
-    // removeReaction({ params, body }, res) {
-    // Thought.findOneAndDelete({ _id: params.thoughtId }, { $pull: { reactions: body } }, { new: true })
-    //     .then(dbUserData => {
-    //     if (!dbUserData) {
-    //         res.status(404).json({ message: 'No user found with this id!' });
-    //         return;
-    //     }
-    //     res.json({message: 'Friend has been removed'});
-    //     })
-    //     .catch(err => res.json(err));
-    // },
+    removeReaction({ params, body }, res) {
+    Thought.findOneAndDelete({ _id: params.thoughtId }, { $pull: { reactions: body } }, { new: true })
+        .then(dbUserData => {
+        if (!dbUserData) {
+            res.status(404).json({ message: 'No user found with this id!' });
+            return;
+        }
+        res.json({message: 'Reaction has been removed'});
+        })
+        .catch(err => res.json(err));
+    },
     
 
 }
